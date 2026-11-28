@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DabbaDash | Sign In</title>
+
+    <link rel="stylesheet" href="login.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <!-- LEFT SIDE -->
+    <div class="login-left">
+
+        <div class="brand">
+            <div class="brand-icon">D</div>
+            <div>
+                <h2>Dabba<span>Dash</span></h2>
+                <small>DELIVERY OPERATIONS</small>
+            </div>
+        </div>
+
+        <div class="hero-content">
+
+            <span class="welcome-tag">
+                <span class="live-dot"></span>
+                SMART DELIVERY MANAGEMENT
+            </span>
+
+            <h1>
+                Everything<br>
+                under one<br>
+                <span>dashboard.</span>
+            </h1>
+
+            <p>
+                Manage restaurant operations, track orders,
+                coordinate riders and power faster deliveries
+                with DabbaDash.
+            </p>
+
+            <div class="feature-list">
+
+                <div class="feature">
+                    <span>✓</span>
+                    Real-time order management
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    Smart delivery tracking
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    Complete kitchen operations
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="left-footer">
+            © 2026 DabbaDash. All rights reserved.
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <div class="login-right">
+
+        <div class="login-card">
+
+            <div class="mobile-logo">
+                <div class="brand-icon">D</div>
+                <h2>Dabba<span>Dash</span></h2>
+            </div>
+
+            <div class="login-heading">
+                <span class="login-label">WELCOME BACK</span>
+                <h1>Sign in to your account</h1>
+                <p>Enter your credentials to access your workspace. <em>Demo: any valid email and a 4+ character password.</em></p>
+            </div>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+
+                    <div class="input-box">
+                        <span>✉</span>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="manager@dabbadash.com"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="password-label">
+                        <label for="password">Password</label>
+                        <span class="password-hint">Required</span>
+                    </div>
+
+                    <div class="input-box">
+                        <span>♙</span>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            required
+                            minlength="4"
+                        >
+
+                        <button
+                            type="button"
+                            class="show-password"
+                            id="togglePassword"
+                        >
+                            SHOW
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember">
+                        <input type="checkbox" id="remember">
+                        <span>Remember me</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="sign-in-btn" id="signInBtn">
+                    <span>Sign In</span>
+                    <span class="arrow">→</span>
+                </button>
+
+                <p class="error-message" id="errorMessage"></p>
+
+            </form>
+
+            <div class="divider">
+                <span></span>
+                <small>SECURE WORKSPACE ACCESS</small>
+                <span></span>
+            </div>
+
+            <div class="security-note">
+                <span>◈</span>
+                Your workspace is ready when you are.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- PREMIUM PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition">
+    <div class="transition-content">
+        <div class="transition-logo">D</div>
+        <h2>Dabba<span>Dash</span></h2>
+        <p>Preparing your dashboard...</p>
+        <div class="transition-loader">
+            <span></span>
+        </div>
+    </div>
+</div>
+
+
+<script src="login.js"></script>
+
+</body>
+</html>

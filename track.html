@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track your order | DabbaDash</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="track-body">
+    <main class="track-page">
+        <div class="track-brand">
+            <div class="logo-icon">D</div>
+            <h2>Dabba<span>Dash</span></h2>
+        </div>
+
+        <form class="lookup" id="lookupForm">
+            <label for="lookupInput">Order number</label>
+            <input id="lookupInput" inputmode="numeric" autocomplete="off" placeholder="e.g. 104">
+            <button class="ghost-btn" type="submit">Track</button>
+        </form>
+
+        <div class="tracking-card" id="trackerRoot"></div>
+
+        <p class="track-live"><span class="online-dot"></span> <span id="syncNote">Live. Updates automatically every few seconds.</span></p>
+    </main>
+
+    <script src="core.js"></script>
+    <script src="data.js"></script>
+    <script src="track.js"></script>
+</body>
+</html>

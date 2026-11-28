@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DabbaDash | Operations Dashboard</title>
+
+    <script>
+        // Simple session guard: the dashboard needs a sign-in from login.html
+        try {
+            if (sessionStorage.getItem("dabbaDashLoggedIn") !== "true") {
+                window.location.replace("login.html");
+            }
+        } catch (e) { /* storage blocked: stay on page */ }
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">D</div>
+            <div>
+                <h2>Dabba<span>Dash</span></h2>
+                <small>DELIVERY OPERATIONS</small>
+            </div>
+        </div>
+
+        <p class="menu-label">WORKSPACE</p>
+
+        <nav aria-label="Sections">
+            <a href="#dashboard" class="nav-link active">▦ Dashboard</a>
+            <a href="#orders" class="nav-link">▤ Order Board</a>
+            <a href="#riders" class="nav-link">♙ Rider Console</a>
+            <a href="#zones" class="nav-link">◎ Zone Batcher</a>
+            <a href="#mapSection" class="nav-link">📍 Live Map</a>
+            <a href="#tracking" class="nav-link">⌖ Customer Tracking</a>
+            <a href="#payoutSection" class="nav-link">₹ Rider Payout</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="status-card">
+                <span class="online-dot"></span>
+                <div>
+                    <strong>Kitchen Online</strong>
+                    <small id="syncNote">Live sync on</small>
+                </div>
+            </div>
+
+            <div class="profile">
+                <div class="avatar">KM</div>
+                <div>
+                    <strong>Kitchen Manager</strong>
+                    <small><a href="#" id="logoutLink" class="logout-link">Sign out</a></small>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content" id="dashboard">
+
+        <header class="topbar">
+            <div>
+                <p class="breadcrumb">Workspace / Overview</p>
+                <h1>Dashboard Overview</h1>
+                <p class="subheading">One commissary kitchen, three virtual brands, live dispatch.</p>
+            </div>
+
+            <div class="top-actions">
+                <button class="primary-btn" id="newOrderBtn" type="button">+ Simulate New Order</button>
+                <button class="ghost-btn" id="resetBtn" type="button">Reset Demo</button>
+                <div class="live-indicator"><span class="online-dot"></span> LIVE</div>
+            </div>
+        </header>
+
+        <!-- KPI BAR -->
+        <section class="stats-grid" aria-label="Key metrics">
+            <div class="stat-card">
+                <div class="stat-top"><span>Active Orders</span><div class="stat-icon orange">▤</div></div>
+                <h2 id="activeOrders">0</h2>
+                <small>Not yet delivered</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top"><span>In Kitchen</span><div class="stat-icon purple">♨</div></div>
+                <h2 id="kitchenOrders">0</h2>
+                <small>Orders being prepared</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top"><span>Avg Prep Time</span><div class="stat-icon blue">◷</div></div>
+                <h2><span id="avgPrep">0</span> <small>min</small></h2>
+                <small id="avgPrepNote">From completed kitchen tickets</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top"><span>Pending Dispatch</span><div class="stat-icon green">➤</div></div>
+                <h2 id="pendingOrders">0</h2>
+                <small id="pendingNote">Packed, awaiting courier</small>
+            </div>
+            <div class="stat-card" id="bottleneckCard">
+                <div class="stat-top"><span>Kitchen Bottlenecks</span><div class="stat-icon red">⚠</div></div>
+                <h2 id="bottleneckCount">0</h2>
+                <small>In kitchen over 20 min</small>
+            </div>
+        </section>
+
+        <div id="alertBar" class="alert-bar" role="status" aria-live="polite" hidden></div>
+
+        <!-- BRANDS -->
+        <section class="section">
+            <div class="section-heading">
+                <div>
+                    <h2>Virtual Restaurant Brands</h2>
+                    <p>Three brands, one commissary kitchen ticket queue. Click a brand to filter the board.</p>
+                </div>
+            </div>
+            <div class="brand-grid" id="brandGrid"></div>
+
+            <details class="menu-details">
+                <summary>View shared menu (20 items, each tagged with its brandId)</summary>
+                <div class="menu-columns" id="menuColumns"></div>
+            </details>
+        </section>
+
+        <!-- KANBAN -->
+        <section class="section" id="orders">
+            <div class="section-heading">
+                <div>
+                    <h2>Order Dispatch Board</h2>
+                    <p>Received → In Kitchen → Packed → Out for Delivery → Delivered</p>
+                </div>
+                <span class="order-count" id="orderCount">15 ORDERS</span>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" id="searchInput" placeholder="Search order ID, customer or item..." aria-label="Search orders">
+                <select id="brandFilter" aria-label="Filter by brand">
+                    <option value="All">All Brands</option>
+                </select>
+                <select id="sectorFilter" aria-label="Filter by sector">
+                    <option value="All">All Sectors</option>
+                </select>
+            </div>
+
+            <div class="kanban" id="kanban"></div>
+        </section>
+
+        <!-- RIDERS -->
+        <section class="section" id="riders">
+            <div class="section-heading">
+                <div>
+                    <h2>Delivery Rider Dispatch Console</h2>
+                    <p>Couriers are matched by sector proximity and vehicle capacity (Bike = 2, Scooter = 3 orders)</p>
+                </div>
+                <span class="order-count">6 RIDERS</span>
+            </div>
+            <div class="rider-grid" id="riderGrid"></div>
+        </section>
+
+        <!-- ZONES + BATCHER -->
+        <section class="section" id="zones">
+            <div class="section-heading">
+                <div>
+                    <h2>Hyperlocal Delivery Zones &amp; Batcher</h2>
+                    <p>Packed orders within the radius below are grouped into one multi-drop courier trip</p>
+                </div>
+                <div class="radius-control">
+                    <label for="radiusRange">Cluster radius: <strong id="radiusLabel">2.5 km</strong></label>
+                    <input type="range" id="radiusRange" min="1" max="6" step="0.5" value="2.5">
+                </div>
+            </div>
+
+            <div class="zone-grid" id="zoneGrid"></div>
+            <div class="batch-list" id="batchList"></div>
+        </section>
+
+        <!-- MAP -->
+        <section class="section" id="mapSection">
+            <div class="section-heading">
+                <div>
+                    <h2>Interactive Hyperlocal Sector Map</h2>
+                    <p>Delivery pins, courier positions and batch clusters (Hyderabad sample sectors)</p>
+                </div>
+                <span class="order-count">LEAFLET MAP</span>
+            </div>
+
+            <div class="map-legend">
+                <span><i class="legend-dot hub-dot"></i> Kitchen hub</span>
+                <span><i class="legend-dot rider-dot"></i> Couriers</span>
+                <span><i class="legend-dot order-dot"></i> Active orders</span>
+                <span><i class="legend-dot cluster-dot"></i> Batch cluster</span>
+            </div>
+            <div id="deliveryMap" class="delivery-map" role="application" aria-label="Interactive delivery map"></div>
+            <p class="map-note">Positions are simulated from sector coordinates and trip progress, not live GPS.</p>
+        </section>
+
+        <!-- CUSTOMER TRACKING + SMS -->
+        <section class="section" id="tracking">
+            <div class="section-heading">
+                <div>
+                    <h2>Customer Order Tracking &amp; SMS Simulator</h2>
+                    <p>What the customer sees. Updates live as the manager moves the order.</p>
+                </div>
+                <a class="primary-btn link-btn" id="openTrackPage" href="track.html?order=104" target="_blank" rel="noopener">Open customer page ↗</a>
+            </div>
+
+            <div class="tracking-layout">
+                <div>
+                    <div class="tracking-select">
+                        <label for="trackingSelect">Select order</label>
+                        <select id="trackingSelect"></select>
+                        <button class="ghost-btn" id="sendSmsBtn" type="button">Send tracking SMS</button>
+                    </div>
+                    <div class="tracking-card" id="trackerRoot"></div>
+                </div>
+
+                <div class="phone" aria-label="Simulated SMS inbox">
+                    <div class="phone-top">SMS Outbox</div>
+                    <div class="phone-body" id="smsList"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAYOUT -->
+        <section class="section" id="payoutSection">
+            <div class="section-heading">
+                <div>
+                    <h2>Rider Payout &amp; Trip Calculator</h2>
+                    <p>Distance-based earnings per trip, with surge pay at peak hours or heavy dispatch queues</p>
+                </div>
+            </div>
+
+            <div class="payout-card">
+                <div class="payout-fields">
+                    <div class="payout-field">
+                        <label for="payoutRider">Rider</label>
+                        <select id="payoutRider"></select>
+                    </div>
+                    <div class="payout-field">
+                        <label for="payoutBase">Base fare per trip (₹)</label>
+                        <input type="number" id="payoutBase" min="0" value="25">
+                    </div>
+                    <div class="payout-field">
+                        <label for="payoutPerKm">Rate per km (₹)</label>
+                        <input type="number" id="payoutPerKm" min="0" value="8">
+                    </div>
+                    <div class="payout-field">
+                        <label for="payoutSurge">Surge pay (×1.5)</label>
+                        <select id="payoutSurge">
+                            <option value="auto">Auto (peak hours / queue ≥ 4)</option>
+                            <option value="on">Always on</option>
+                            <option value="off">Off</option>
+                        </select>
+                    </div>
+                    <div class="payout-field">
+                        <label for="payoutBonus">Bonus (₹)</label>
+                        <input type="number" id="payoutBonus" min="0" value="0">
+                    </div>
+                    <div class="payout-field">
+                        <label for="payoutDeductions">Deductions (₹)</label>
+                        <input type="number" id="payoutDeductions" min="0" value="0">
+                    </div>
+                </div>
+
+                <div class="payout-result">
+                    <div><small>COMPLETED TRIPS</small><strong id="completedDeliveries">0</strong></div>
+                    <div><small>DISTANCE COVERED</small><strong id="payoutKm">0 km</strong></div>
+                    <div><small>SURGE</small><strong id="payoutSurgeState">Off</strong></div>
+                    <div class="payout-total"><small>ESTIMATED TOTAL PAYOUT</small><strong id="totalPayout">₹0</strong></div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="trip-table">
+                        <thead><tr><th>Order</th><th>Sector</th><th>Distance</th><th>Fare</th><th>Status</th></tr></thead>
+                        <tbody id="tripRows"></tbody>
+                    </table>
+                </div>
+                <p class="map-note">Demo calculation. Fare = (base + rate × km) × surge. Trips still on the road are shown but not paid until delivered.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2026 DabbaDash. LastMile Bite Battle.</p>
+            <p>Built with HTML • CSS • JavaScript • Node.js REST • Leaflet</p>
+        </footer>
+    </main>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="core.js"></script>
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

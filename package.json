@@ -1,0 +1,8 @@
+{
+  "name": "dabbadash",
+  "version": "4.0.0",
+  "description": "DabbaDash: LastMile Bite Battle. Cloud-kitchen dispatch dashboard + customer tracker.",
+  "scripts": { "start": "node server.js", "test": "node test.js" },
+  "engines": { "node": ">=14" },
+  "license": "MIT"
+}
